@@ -1,0 +1,178 @@
+1-    Pagination
+
+    1-  - $author = Author::with('user')->withCount('articles')->orderBy('id' , 'desc')->simplePaginate(4);
+
+        -   add links in Index.blade.php
+                    {{ $author->links() }}
+        -  add bootstrap in appServiceProived
+                Paginator::useBootstrap();
+
+
+<a href="{{ route('route.name') }}" class="btn btn-info"> Return To Index </a>
+
+<div class="card-header">
+   <a href="{{ route('specialities.create') }}" class="btn btn-primary"> Add new Speciality </a>
+<div class="card-tools">
+
+
+2-    Add Image
+
+ 1-   php artisan storage:link
+
+ 2- // Form Image
+ <div class="form-group col-md-6">
+      <label for="image">Image</label>
+      <input type="file" name="image" class="form-control" id="image"
+         placeholder="Enter Image">
+</div>
+
+ 3-   //   In Create store Function
+    function performStore() {
+
+let formData = new FormData();
+    formData.append('author_id',document.getElementById('author_id').value);
+    formData.append('title',document.getElementById('title').value);
+    formData.append('image',document.getElementById('image').files[0]);
+    formData.append('short_description',document.getElementById('short_description').value);
+    formData.append('full_description',document.getElementById('full_description').value);
+
+store('/cms/admin/articles',formData);
+
+}
+
+ 4-   // function store
+ 1-   $validator = Validator($request->all(), [
+            'image'=>"required|image|max:2048|mimes:png,jpg,jpeg,pdf",
+        ]);
+
+
+ 2-   $image = $request->file('image');;
+        $imageName = time() . 'image.' . $image->getClientOriginalExtension();
+        $image->move('images/admin', $imageName);
+        $admin->image = $imageName;
+
+ 3-   In Index
+    <td>
+        <img class="img-circle img-bordered-sm" src="{{asset('storage/images/'.$articles->image)}}" width="50" height="50" alt="User Image">
+    </td>
+
+
+3   // Add Date
+
+// Date Form
+
+      <div class="form-group col-md-4">
+                    <label for="dateOfBirth">Birth Date</label>
+                    <input id="dateOfBirth" type="date"  name="dateOfBirth" class="form-control"
+                        placeholder="Enter birth date">
+                </div>
+
+// CSS
+<link rel="stylesheet" href="{{ asset('cms/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}">
+
+// JS
+<script src="{{ asset('cms/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+
+
+
+4-  Send Email
+
+1- .env
+
+
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=alyazorytamer@gmail.com
+MAIL_PASSWORD=tameryumna2020!
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=alyazorytamer@gmail.com
+MAIL_FROM_NAME="${APP_NAME}"
+
+
+2- create mail
+php artisan make:mail SendMail
+          public function build()
+    {
+    return $this->from('alyazorytamer@gmail.com')
+        ->subject('Mail from Laravel 8')
+                    ->view('mails.sendEmail');
+    }
+
+
+3- Create Blade View
+1- make folder emails
+2- make view sendEmail
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laravel Course</title>
+</head>
+<body>
+    {{-- <h1>{{ $details['title'] }}</h1>
+    <p>{{ $details['body'] }}</p> --}}
+    <h1>This is test mail from Tutsmake.com</h1>
+    <p>Laravel 8 send email example</p>
+    <p>Thank you</p>
+</body>
+</html>
+
+
+
+4- Add Controller
+    php artisan make:controller SendEmailController
+        Add Function in Controller
+
+          public function index()
+          {
+      Mail::to("alyazorytamer@gmail.com")->send(new SendMail());
+    }
+
+5- Add Route
+        Route::get('send-email', [SendEmailController::class, 'index']);
+
+
+//
+
+relation tables
+
+1- make index functions with parameter $id
+
+    public function indexItems($id)
+    {
+        //
+        $item = Item::where('invoice_id', $id)->orderBy('created_at', 'desc')->paginate(5);
+        return response()->view('dashboard.items.create', compact('item','id'));
+    }
+
+2- make create functions with Parameter $id
+
+
+    public function createItems($id)
+    {
+        //
+        return response()->view('dashboard.items.create', compact('id'));
+    }
+
+3- write route
+
+ `  Route::get('/create/articles/{id}', [ArticleController::class, 'createArticle'])->name('createArticle');
+    Route::get('/index/articles/{id}', [ArticleController::class, 'indexArticle'])->name('indexArticle');
+
+3- input hidden id in create blade
+          <input type="text" name="category_id" id="category_id" value="{{$id}}"
+                    class="form-control form-control-solid" hidden/>
+
+4- PerformStore
+        category_id: document.getElementById('category_id').value,
+
+5- column count in index blade
+
+  <td><a href="{{route('indexArticle',['id'=>$category->id])}}"
+                        class="btn btn-info">({{$category->articles_count}})
+                        article/s</a> </td>
+
+
+6- button  create in top of index blade
